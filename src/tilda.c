@@ -48,6 +48,7 @@
 #include "tomboykeybinder.h"
 #include "tilda-keybinding.h"
 #include "tilda-cli-options.h"
+#include "tilda-dbus-actions.h"
 
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -748,12 +749,16 @@ int main (int argc, char *argv[])
         }
     }
 
+    guint bus_identifier = tilda_dbus_actions_init (&tw);
+
     pull (&tw, config_getbool ("hidden") ? PULL_UP : PULL_DOWN, FALSE);
 
     g_print ("Tilda has started. Press %s to pull down the window.\n",
         config_getstr ("key"));
     /* Whew! We're finally all set up and ready to run GTK ... */
     gtk_main();
+
+    tilda_dbus_actions_finish (bus_identifier);
 
 initialization_failed:
     tilda_window_free(&tw);
