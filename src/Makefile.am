@@ -26,22 +26,6 @@ src/tilda-enum-types.h: $(srcdir)/src/tilda-enum-types.h.template $(ENUM_TYPES) 
 src/tilda-enum-types.c: $(srcdir)/src/tilda-enum-types.c.template $(ENUM_TYPES) $(GLIB_MKENUMS)
 	$(AM_V_GEN) ($(GLIB_MKENUMS) --template $(srcdir)/src/tilda-enum-types.c.template $(ENUM_TYPES)) > $@
 
-GDBUS_CODEGEN_OPTIONS = \
-	--interface-prefix 'com.github.lanoxx.tilda.' --c-namespace TildaDbus
-
-GDBUS_CODEGEN_BODY_OPTIONS = \
-	--body --output $@
-
-GDBUS_CODEGEN_HEADER_OPTIONS = \
-	--header --output $@
-
-src/tilda-dbus.c: $(srcdir)/src/tilda-dbus-actions.xml $(GDBUS_CODEGEN)
-	$(AM_V_GEN) ($(GDBUS_CODEGEN) $(GDBUS_CODEGEN_BODY_OPTIONS)) $(srcdir)/tilda-dbus-actions.xml
-	touch src/config.h
-
-src/tilda-dbus.h: ${srcdir}/src/tilda-dbus-actions.xml $(GDBUS_CODEGEN)
-	$(AM_V_GEN) ($(GDBUS_CODEGEN) $(GDBUS_CODEGEN_HEADER_OPTIONS)) $(srcdir)/tilda-dbus-actions.xml
-
 src_tilda_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_builddir)/src \
@@ -55,7 +39,6 @@ src_tilda_CPPFLAGS = \
 BUILT_SOURCES = \
 		src/glade-resources.h src/glade-resources.c \
 		src/tilda-enum-types.c src/tilda-enum-types.h \
-		src/tilda-dbus.c src/tilda-dbus.h \
 		$(NULL)
 
 # Keep the headers here so that make dist-bzip2 works
@@ -67,6 +50,7 @@ src_tilda_SOURCES = \
 		src/key_grabber.h src/key_grabber.c \
 		src/screen-size.h src/screen-size.c \
 		src/tilda.h src/tilda.c \
+		src/tilda-dbus.c src/tilda-dbus.h \
 		src/tilda-dbus-actions.h src/tilda-dbus-actions.c \
 		src/tilda-keybinding.c src/tilda-keybinding.h \
 		src/tilda-cli-options.c src/tilda-cli-options.h \
@@ -113,7 +97,6 @@ src_tilda_LDADD = \
 
 EXTRA_DIST += \
 		src/glade-resources.gresource.xml \
-		src/tilda-dbus.xml \
 		src/tilda.ui \
 		$(NULL)
 

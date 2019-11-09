@@ -15,7 +15,7 @@ on_handle_toggle (TildaDbusActions *skeleton,
 
     window = user_data;
 
-    pull (window, PULL_TOGGLE, FALSE);
+    pull (window, PULL_TOGGLE, TRUE);
 
     tilda_dbus_actions_complete_toggle (skeleton, invocation);
 
@@ -28,19 +28,25 @@ on_name_acquired (GDBusConnection *connection,
                   gpointer window)
 {
     TildaDbusActions *actions;
+    tilda_window *tw;
     GError *error;
+    gchar *path;
+
+    tw = window;
 
     g_debug ("TildaDbusActions: Name acquired: %s", name);
 
     error = NULL;
 
-    actions = tilda_dbus_actions_skeleton_new ();
+    actions = tilda_dbus_actions_skeleton_new (name);
 
     g_signal_connect (actions, "handle-toggle",G_CALLBACK (on_handle_toggle), window);
 
+    path = g_strdup_printf ("%s%d", TILDA_DBUS_ACTIONS_PATH, tw->instance);
+
     g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (actions),
                                       connection,
-                                      TILDA_DBUS_ACTIONS_PATH,
+                                      path,
                                       &error);
 
     if (error)
@@ -54,13 +60,18 @@ guint
 tilda_dbus_actions_init (tilda_window *window)
 {
     guint bus_identifier;
+    gchar *name;
+
+    name = g_strdup_printf ("%s%d", TILDA_DBUS_NAME, window->instance);
 
     bus_identifier = g_bus_own_name (G_BUS_TYPE_SESSION,
-                                     TILDA_DBUS_NAME,
+                                     name,
                                      G_BUS_NAME_OWNER_FLAGS_NONE,
                                      NULL,
                                      on_name_acquired,
                                      NULL, window, NULL);
+
+    g_free (name);
 
     return bus_identifier;
 }
