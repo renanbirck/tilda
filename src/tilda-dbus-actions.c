@@ -62,7 +62,7 @@ tilda_dbus_actions_init (tilda_window *window)
     guint bus_identifier;
     gchar *name;
 
-    name = g_strdup_printf ("%s%d", TILDA_DBUS_NAME, window->instance);
+    name = tilda_dbus_actions_get_bus_name (window);
 
     bus_identifier = g_bus_own_name (G_BUS_TYPE_SESSION,
                                      name,
@@ -74,6 +74,12 @@ tilda_dbus_actions_init (tilda_window *window)
     g_free (name);
 
     return bus_identifier;
+}
+
+gchar *
+tilda_dbus_actions_get_bus_name (tilda_window *window)
+{
+    return g_strdup_printf ("%s%d", TILDA_DBUS_NAME, window->instance);
 }
 
 void
