@@ -122,8 +122,13 @@ static void on_popup_hide (GtkWidget *widget, tilda_window *tw)
     tw->disable_auto_hide = FALSE;
 }
 
-void
-tilda_context_menu_popup (tilda_window *tw, tilda_term *tt, GdkEvent * event)
+static void on_selection_done(GtkWidget * widget, tilda_window *tw)
+{
+    DEBUG_FUNCTION ("on_selection_done");
+}
+
+GtkWidget *
+tilda_context_menu_popup (tilda_window *tw, tilda_term *tt, char * link, TerminalURLFlavor flavor)
 {
     DEBUG_FUNCTION ("popup_menu");
     DEBUG_ASSERT (tw != NULL);
@@ -137,7 +142,7 @@ tilda_context_menu_popup (tilda_window *tw, tilda_term *tt, GdkEvent * event)
     GSimpleActionGroup *action_group = g_simple_action_group_new ();
 
     /* We need two different lists of entries because the
-     * because the actions have different scope, some concern the
+     * actions have different scope, some concern the
      * tilda_window and others concern the current terminal, so
      * when we add them to the action_group we need to pass different
      * user_data (tw or tt).
@@ -168,16 +173,14 @@ tilda_context_menu_popup (tilda_window *tw, tilda_term *tt, GdkEvent * event)
     g_action_map_add_action_entries (G_ACTION_MAP (action_group),
                                      entries_for_tilda_terminal, G_N_ELEMENTS (entries_for_tilda_terminal), tt);
 
-    char * match = vte_terminal_match_check_event (VTE_TERMINAL (tt->vte_term), event, NULL);
-
     g_action_map_add_action_entries (G_ACTION_MAP (action_group),
-                                     entries_for_regex, G_N_ELEMENTS (entries_for_regex), match);
+                                     entries_for_regex, G_N_ELEMENTS (entries_for_regex), link);
 
     GAction *copyAction;
 
     copyAction = g_action_map_lookup_action (G_ACTION_MAP (action_group), "copy-link");
 
-    if (match == NULL) {
+    if (link == NULL) {
         g_simple_action_set_enabled (G_SIMPLE_ACTION (copyAction), FALSE);
     }
 
@@ -193,6 +196,9 @@ tilda_context_menu_popup (tilda_window *tw, tilda_term *tt, GdkEvent * event)
     /* Disable auto hide */
     tw->disable_auto_hide = TRUE;
     g_signal_connect (G_OBJECT (menu), "unmap", G_CALLBACK (on_popup_hide), tw);
+    g_signal_connect (G_OBJECT(menu), "selection-done", G_CALLBACK (on_selection_done), tw);
 
-    gtk_menu_popup_at_pointer (GTK_MENU (menu), event);
+    g_object_unref (builder);
+
+    return menu;
 }
